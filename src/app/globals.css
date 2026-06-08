@@ -83,3 +83,18 @@ body {
 @media (max-width: 540px) {
   .grid-4 { grid-template-columns: 1fr; }
 }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.historial-modal {
+  animation: slideDown 0.2s ease-out;
+}
