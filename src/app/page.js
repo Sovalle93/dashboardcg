@@ -1,65 +1,185 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { parseExcelFile, agregarPorMes, agregarPorSucursal, agregarPorNegocio, agregarPorFormaPago, agregarPorMesYAnio, agregarPorDia, crecimientoVsAnioAnterior, ticketPromedioPorNegocio, ticketPromedioPorTipo, formatCLP } from "@/lib/parseExcel";
+import { UploadCloud, BarChart2, RefreshCw } from "lucide-react";
+import ResumenCards from "@/components/ui/ResumenCards";
+import InsightIA from "@/components/ui/InsightIA";
+import SinDatos from "@/components/ui/SinDatos";
+import VentasHistoricas from "@/components/charts/VentasHistoricas";
+import VentasAnualesComparativo from "@/components/charts/VentasAnualesComparativo";
+import CrecimientoVsAnterior from "@/components/charts/CrecimientoVsAnterior";
+import EvolucionDiaria from "@/components/charts/EvolucionDiaria";
+import TicketPromedio from "@/components/charts/TicketPromedio";
+import GraficoNegocios from "@/components/charts/GraficoNegocios";
+import GraficoFormaPago from "@/components/charts/GraficoFormaPago";
+import RankingLocales from "@/components/charts/RankingLocales";
+import GraficoSucursales from "@/components/charts/GraficoSucursales";
+
+function Seccion({ titulo }) {
+  return (
+    <div style={{ marginTop: 16, marginBottom: 8 }}>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#002b54", textTransform: "uppercase", letterSpacing: "0.1em", borderLeft: "3px solid #002b54", paddingLeft: 12 }}>{titulo}</p>
+    </div>
+  );
+}
 
 export default function Home() {
+  const [pedidos, setPedidos] = useState([]);
+  const [archivos, setArchivos] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleArchivos(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setCargando(true);
+    setError(null);
+    try {
+      const resultados = await Promise.all(files.map((f) => parseExcelFile(f)));
+      setPedidos(resultados.flat());
+      setArchivos(files.map((f) => f.name));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  const totalVentas = pedidos.reduce((s, p) => s + p.monto, 0);
+  const totalPedidos = pedidos.length;
+  const ticketPromedio = totalPedidos > 0 ? Math.round(totalVentas / totalPedidos) : 0;
+  const sucursales = [...new Set(pedidos.map((p) => p.sucursal))].length;
+
+  const datosMes = agregarPorMes(pedidos);
+  const datosSucursal = agregarPorSucursal(pedidos);
+  const datosNegocio = agregarPorNegocio(pedidos);
+  const datosFormaPago = agregarPorFormaPago(pedidos);
+  const datosHistoricos = agregarPorMesYAnio(pedidos);
+  const datosDiarios = agregarPorDia(pedidos);
+  const datosCrecimiento = crecimientoVsAnioAnterior(pedidos);
+  const datosTicketNegocio = ticketPromedioPorNegocio(pedidos);
+  const datosTicketTipo = ticketPromedioPorTipo(pedidos);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div style={{ minHeight: "100vh", background: "#f8f8f8" }}>
+
+      {/* Header */}
+      <header style={{ background: "#002b54", boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "18px 40px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <BarChart2 size={22} color="#fff" />
+            </div>
+            <div>
+              <p style={{ color: "#fff", fontWeight: 700, fontSize: 17, lineHeight: 1.2 }}>Cerogrado</p>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, marginTop: 2 }}>Sistema de Reportes · Trampoline Park</p>
+            </div>
+          </div>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>
+            {new Date().toLocaleDateString("es-CL", { year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Upload hero */}
+      {pedidos.length === 0 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 24px" }}>
+          <div style={{ background: "#fff", borderRadius: 20, padding: "56px 48px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", maxWidth: 480, width: "100%", textAlign: "center", border: "1px solid #e8e8e8" }}>
+            <div style={{ width: 64, height: 64, borderRadius: 16, background: "#002b54", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+              <UploadCloud size={30} color="#fff" />
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: "#111", marginBottom: 10 }}>Cargá tu informe de ventas</h2>
+            <p style={{ fontSize: 14, color: "#888", lineHeight: 1.6, marginBottom: 32 }}>
+              Subí uno o varios archivos Excel para generar el dashboard comparativo con análisis de inteligencia artificial.
+            </p>
+            <label className="btn-primary" style={{ justifyContent: "center", width: "100%", cursor: "pointer" }}>
+              <UploadCloud size={16} />
+              {cargando ? "Procesando..." : "Seleccionar archivos Excel"}
+              <input type="file" accept=".xls,.xlsx" multiple style={{ display: "none" }} onChange={handleArchivos} disabled={cargando} />
+            </label>
+            {error && <p style={{ marginTop: 16, color: "#e53e3e", fontSize: 13 }}>{error}</p>}
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* Dashboard */}
+      {pedidos.length > 0 && (
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "40px 40px 80px" }}>
+
+          {/* Toolbar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111" }}>Informe de gestión</h2>
+              <p style={{ fontSize: 12, color: "#999", marginTop: 4 }}>{archivos.join(" · ")}</p>
+            </div>
+            <label className="btn-secondary" style={{ cursor: "pointer" }}>
+              <RefreshCw size={14} />
+              Cargar otro archivo
+              <input type="file" accept=".xls,.xlsx" multiple style={{ display: "none" }} onChange={handleArchivos} />
+            </label>
+          </div>
+
+          {/* KPIs */}
+          <ResumenCards totalVentas={totalVentas} totalPedidos={totalPedidos} ticketPromedio={ticketPromedio} sucursales={sucursales} formatCLP={formatCLP} />
+
+          {/* IA */}
+          <div style={{ marginTop: 24 }}>
+            <InsightIA totalVentas={totalVentas} totalPedidos={totalPedidos} datosMes={datosMes} datosSucursal={datosSucursal} />
+          </div>
+
+          {/* Ventas históricas */}
+          <Seccion titulo="Ventas históricas" />
+          <div className="grid-2">
+            <VentasHistoricas datos={datosHistoricos} formatCLP={formatCLP} />
+          </div>
+
+          {/* Comparativos anuales */}
+          <Seccion titulo="Comparativos anuales" />
+          <div className="grid-2">
+            <VentasAnualesComparativo datos={datosHistoricos} formatCLP={formatCLP} />
+            <RankingLocales datos={datosSucursal} formatCLP={formatCLP} />
+          </div>
+
+          {/* Crecimiento */}
+          <Seccion titulo="Crecimiento por local" />
+          <div className="grid-2">
+            <CrecimientoVsAnterior datos={datosCrecimiento} formatCLP={formatCLP} />
+          </div>
+
+          {/* Participación */}
+          <Seccion titulo="Participación y canales" />
+          <div className="grid-2">
+            <GraficoNegocios datos={datosNegocio} formatCLP={formatCLP} />
+            <GraficoFormaPago datos={datosFormaPago} />
+            <GraficoSucursales datos={datosSucursal} formatCLP={formatCLP} />
+            <SinDatos titulo="Distribución por canal (Tótem / Web / POS / Efectivo)" razon="El archivo Excel no incluye la columna 'Canal de venta'. Esta información debe exportarse desde el backoffice para visualizar este gráfico." />
+          </div>
+
+          {/* Evolución diaria */}
+          <Seccion titulo="Control operacional" />
+          <div className="grid-2">
+            <EvolucionDiaria datos={datosDiarios} formatCLP={formatCLP} />
+          </div>
+
+          {/* Ticket promedio */}
+          <Seccion titulo="Ticket promedio" />
+          <div className="grid-2">
+            <TicketPromedio datosNegocio={datosTicketNegocio} datosTipo={datosTicketTipo} formatCLP={formatCLP} />
+          </div>
+
+          {/* Sin datos suficientes */}
+          <Seccion titulo="Métricas avanzadas" />
+          <div className="grid-2">
+            <SinDatos titulo="Venta por m² x local x año (UF)" razon="Se necesita la superficie en m² de cada local. Esta información no viene en el Excel de pedidos." />
+            <SinDatos titulo="Venta por m² x local x mes (UF)" razon="Se necesita la superficie en m² de cada local y el valor UF histórico. Esta información no viene en el Excel de pedidos." />
+            <SinDatos titulo="Crecimiento por canal" razon="El archivo Excel no incluye la columna 'Canal de venta'. Esta información debe exportarse desde el backoffice." />
+          </div>
+
+          <p style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 48 }}>
+            Dashboard generado con IA · Cerogrado © {new Date().getFullYear()}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
