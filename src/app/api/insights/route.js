@@ -4,7 +4,21 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req) {
   try {
-    const { totalVentas, totalPedidos, datosMes, datosSucursal } = await req.json();
+    const body = await req.json();
+    const { totalVentas, totalPedidos, datosMes, datosSucursal } = body;
+
+    if (
+      typeof totalVentas !== "number" ||
+      typeof totalPedidos !== "number" ||
+      !Array.isArray(datosMes) ||
+      !Array.isArray(datosSucursal)
+    ) {
+      return Response.json({ insight: "Datos inválidos." }, { status: 400 });
+    }
+
+    if (datosMes.length > 120 || datosSucursal.length > 100) {
+      return Response.json({ insight: "Demasiados datos para analizar." }, { status: 400 });
+    }
 
     const prompt = `Eres un analista de ventas experto. Analizá estos datos y escribí 4-5 oraciones con los insights más importantes en español:
 - Ventas totales: $${totalVentas.toLocaleString("es-CL")}

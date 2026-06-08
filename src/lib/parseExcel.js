@@ -27,15 +27,12 @@ export function parseExcelFile(file) {
               formaPago: r["Forma Pago"] || "Sin dato",
               negocio: r["Negocio"] || "Sin dato",
               sucursal: r["Sucursal"] || "Sin dato",
-              cajero: r["Cajero"] || "Sin dato",
               estado: r["Estado Proceso"] || "Sin dato",
-              cliente: r["Nombre Cliente"] || "Sin nombre",
-              run: r["RUN Cliente"] || null,
             };
           });
         resolve(parsed);
-      } catch (err) {
-        reject(new Error("No se pudo leer el archivo: " + err.message));
+      } catch {
+        reject(new Error("No se pudo leer el archivo. Verificá que sea un Excel válido (.xls o .xlsx)."));
       }
     };
     reader.onerror = () => reject(new Error("Error al leer el archivo"));
