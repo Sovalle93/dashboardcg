@@ -1,12 +1,20 @@
 "use client";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import FiltroHeader from "@/components/ui/FiltroHeader";
+import { CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMillionsDecimal } from "@/lib/constants";
 
 export default function EvolucionDiaria({ datos, formatCLP }) {
-  const diasUnicos = [...new Set(datos.map((d) => d.dia))];
+  const diasUnicos = datos.length;
+  // Spread to avoid mutating the prop before sorting
+  const mejorDia = [...datos].sort((a, b) => b.total - a.total)[0];
+  const totalAcum = datos.reduce((s, d) => s + d.total, 0);
+
   return (
-    <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: 16, padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)", gridColumn: "1 / -1" }}>
-      <FiltroHeader titulo="Evolución diaria — control operacional" filtros={[`${diasUnicos.length} día(s)`, "CLP"]} />
+    <div className="card" style={{ gridColumn: "1 / -1" }}>
+      <FiltroHeader
+        titulo="Evolución diaria — control operacional"
+        filtros={[`${diasUnicos} día(s)`, "CLP"]}
+      />
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={datos} margin={{ top: 10, right: 24, left: 8, bottom: 0 }}>
           <defs>
@@ -16,23 +24,35 @@ export default function EvolucionDiaria({ datos, formatCLP }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-          <XAxis dataKey="dia" tick={{ fill: "#888", fontSize: 11, fontFamily: "inherit" }} />
-          <YAxis tick={{ fill: "#888", fontSize: 10, fontFamily: "inherit" }} tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} />
-          <Tooltip formatter={(v) => [formatCLP(v), "Ventas"]} contentStyle={{ borderRadius: 10, fontSize: 13, border: "1px solid #e8e8e8", fontFamily: "inherit" }} />
-          <Area type="monotone" dataKey="total" stroke="#002b54" strokeWidth={2.5} fill="url(#gradDia)" dot={{ fill: "#002b54", r: 4 }} activeDot={{ r: 6 }} name="Ventas" />
+          <XAxis dataKey="dia" tick={AXIS_TICK_X} />
+          <YAxis tick={AXIS_TICK_Y} tickFormatter={formatMillionsDecimal} />
+          <Tooltip
+            formatter={(v) => [formatCLP(v), "Ventas"]}
+            contentStyle={CHART_TOOLTIP_STYLE}
+          />
+          <Area
+            type="monotone"
+            dataKey="total"
+            stroke="#002b54"
+            strokeWidth={2.5}
+            fill="url(#gradDia)"
+            dot={{ fill: "#002b54", r: 4 }}
+            activeDot={{ r: 6 }}
+            name="Ventas"
+          />
         </AreaChart>
       </ResponsiveContainer>
       <div style={{ display: "flex", gap: 32, marginTop: 20, paddingTop: 16, borderTop: "1px solid #f0f0f0" }}>
         <div>
           <p style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em" }}>Mejor día</p>
           <p style={{ fontSize: 15, fontWeight: 700, color: "#002b54", marginTop: 4 }}>
-            {datos.sort((a,b) => b.total - a.total)[0]?.dia} — {formatCLP(Math.max(...datos.map(d => d.total)))}
+            {mejorDia?.dia} — {formatCLP(mejorDia?.total ?? 0)}
           </p>
         </div>
         <div>
           <p style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em" }}>Promedio diario</p>
           <p style={{ fontSize: 15, fontWeight: 700, color: "#333", marginTop: 4 }}>
-            {formatCLP(Math.round(datos.reduce((s,d) => s+d.total, 0) / datos.length))}
+            {formatCLP(diasUnicos > 0 ? Math.round(totalAcum / diasUnicos) : 0)}
           </p>
         </div>
       </div>

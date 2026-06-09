@@ -126,13 +126,11 @@ export function useHistorial() {
     });
   }, [guardarHistorial]);
 
-  // Eliminar todos los registros
+  // Eliminar todos los registros — la confirmación la maneja quien llama esto
   const eliminarTodos = useCallback(() => {
-    if (confirm("⚠️ ¿Eliminar TODO el historial?\n\nEsta acción eliminará todos los registros permanentemente.")) {
-      setHistorial([]);
-      localStorage.removeItem("historialSubidas");
-      setError(null);
-    }
+    setHistorial([]);
+    localStorage.removeItem("historialSubidas");
+    setError(null);
   }, []);
 
   // Obtener estadísticas

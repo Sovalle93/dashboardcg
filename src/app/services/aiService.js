@@ -50,7 +50,7 @@ class AIService {
         const insight = completion.choices[0]?.message?.content;
         if (insight) {
           console.log(`✅ Modelo exitoso: ${model}`);
-          return insight;
+          return { insight, model };
         }
         
       } catch (error) {

@@ -1,6 +1,5 @@
 // components/ui/Tabs.jsx
 "use client";
-import { useState } from "react";
 
 const categorias = {
   general: "📊 General",

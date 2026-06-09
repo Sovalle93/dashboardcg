@@ -1,43 +1,29 @@
 "use client";
 import { useState } from "react";
 import { Calendar, Trash2, CheckCircle } from "lucide-react";
+import { formatearFecha } from "./utils";
 
-const formatearFecha = (fechaISO) => {
-  const fecha = new Date(fechaISO);
-  return fecha.toLocaleDateString("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-};
-
-export function RegistroItem({ 
-  registro, 
-  modoComparacion, 
-  seleccionado, 
-  onSelect, 
-  onCargar, 
+export function RegistroItem({
+  registro,
+  modoComparacion,
+  seleccionado,
+  onSelect,
+  onCargar,
   onEliminar,
   mostrarEliminar
 }) {
   const [eliminando, setEliminando] = useState(false);
 
-  const handleEliminar = async (e) => {
+  const handleEliminar = (e) => {
     e.stopPropagation();
-    if (confirm(`¿Eliminar registro de "${registro.archivos.join(', ')}"?`)) {
+    if (confirm(`¿Eliminar registro de "${registro.archivos.join(", ")}"?`)) {
       setEliminando(true);
-      setTimeout(() => {
-        onEliminar(registro.id);
-      }, 300);
+      setTimeout(() => onEliminar(registro.id), 300);
     }
   };
 
   const handleClick = () => {
-    if (modoComparacion) {
-      onSelect(registro.id);
-    }
+    if (modoComparacion) onSelect(registro.id);
   };
 
   const handleCargar = (e) => {
@@ -46,11 +32,10 @@ export function RegistroItem({
   };
 
   return (
-    <div 
+    <div
       style={{
         padding: "16px 20px",
         borderBottom: "1px solid #f0f0f0",
-        transition: "all 0.2s",
         background: seleccionado ? "#e8f4f8" : eliminando ? "transparent" : "#fff",
         cursor: modoComparacion ? "pointer" : "default",
         opacity: eliminando ? 0 : 1,
@@ -59,14 +44,11 @@ export function RegistroItem({
       }}
       onClick={handleClick}
       onMouseEnter={(e) => {
-        if (!modoComparacion && !eliminando) {
-          e.currentTarget.style.background = "#fafafa";
-        }
+        if (!modoComparacion && !eliminando) e.currentTarget.style.background = "#fafafa";
       }}
       onMouseLeave={(e) => {
-        if (!modoComparacion && !eliminando) {
+        if (!modoComparacion && !eliminando)
           e.currentTarget.style.background = seleccionado ? "#e8f4f8" : "#fff";
-        }
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -80,15 +62,21 @@ export function RegistroItem({
           justifyContent: "center",
           flexShrink: 0
         }}>
-          {modoComparacion && seleccionado ? (
-            <CheckCircle size={20} color="#fff" />
-          ) : (
-            <Calendar size={18} color={seleccionado ? "#fff" : "#002b54"} />
-          )}
+          {modoComparacion && seleccionado
+            ? <CheckCircle size={20} color="#fff" />
+            : <Calendar size={18} color={seleccionado ? "#fff" : "#002b54"} />
+          }
         </div>
-        
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            flexWrap: "wrap",
+            gap: 8,
+            marginBottom: 8
+          }}>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "#111", margin: 0 }}>
                 {registro.archivos.join(", ")}
@@ -97,7 +85,7 @@ export function RegistroItem({
                 {formatearFecha(registro.fecha)}
               </p>
             </div>
-            
+
             {!modoComparacion && (
               <div style={{ display: "flex", gap: 8 }}>
                 <button
@@ -136,18 +124,14 @@ export function RegistroItem({
               </div>
             )}
           </div>
-          
-          <div style={{
-            display: "flex",
-            gap: 20,
-            fontSize: 12,
-            color: "#666",
-            flexWrap: "wrap"
-          }}>
+
+          <div style={{ display: "flex", gap: 20, fontSize: 12, color: "#666", flexWrap: "wrap" }}>
             <span>💰 ${registro.totalVentas.toLocaleString()}</span>
             <span>📦 {registro.totalPedidos} pedidos</span>
             {registro.fechaInicio && (
-              <span>📅 {new Date(registro.fechaInicio).toLocaleDateString()} → {new Date(registro.fechaFin).toLocaleDateString()}</span>
+              <span>
+                📅 {new Date(registro.fechaInicio).toLocaleDateString()} → {new Date(registro.fechaFin).toLocaleDateString()}
+              </span>
             )}
           </div>
         </div>

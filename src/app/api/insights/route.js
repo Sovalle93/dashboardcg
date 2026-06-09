@@ -1,58 +1,56 @@
-// app/api/insights/route.js
 import { createInsightsService } from '../../services/insightsService.js';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   const startTime = Date.now();
-  
+
   try {
     const body = await request.json();
-    
-    // Validación rápida
-    if (!body || typeof body !== 'object') {
+
+    const { totalVentas, totalPedidos, datosMes, datosSucursal } = body ?? {};
+
+    if (
+      typeof totalVentas !== 'number' ||
+      typeof totalPedidos !== 'number' ||
+      !Array.isArray(datosMes) ||
+      !Array.isArray(datosSucursal)
+    ) {
       return NextResponse.json(
-        { error: 'Cuerpo de request inválido' },
+        { success: false, insight: null, error: 'Datos inválidos o incompletos.' },
         { status: 400 }
       );
     }
-    
+
+    if (datosMes.length > 120 || datosSucursal.length > 100) {
+      return NextResponse.json(
+        { success: false, insight: null, error: 'Demasiados datos para analizar.' },
+        { status: 400 }
+      );
+    }
+
     const insightsService = createInsightsService();
     const result = await insightsService.generateBusinessInsight({
-      totalVentas: body.totalVentas,
-      totalPedidos: body.totalPedidos,
-      datosMes: body.datosMes,
-      datosSucursal: body.datosSucursal
+      totalVentas,
+      totalPedidos,
+      datosMes,
+      datosSucursal
     });
-    
-    const duration = Date.now() - startTime;
-    console.log(`✅ Insight generado exitosamente en ${duration}ms`);
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
       ...result,
-      performance: { durationMs: duration }
+      performance: { durationMs: Date.now() - startTime }
     });
-    
+
   } catch (error) {
-    console.error('❌ Error en endpoint:', error);
-    
+    console.error('Error en /api/insights:', error.message);
     return NextResponse.json(
-      { 
-        success: false,
-        insight: null,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      },
+      { success: false, insight: null, error: error.message },
       { status: 500 }
     );
   }
 }
 
-// Health check
 export async function GET() {
-  return NextResponse.json({ 
-    status: 'healthy', 
-    service: 'insights-api-groq',
-    timestamp: new Date().toISOString()
-  });
+  return NextResponse.json({ status: 'healthy', service: 'insights-api' });
 }

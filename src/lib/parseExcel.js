@@ -155,6 +155,17 @@ export function ticketPromedioPorNegocio(pedidos) {
   return Object.values(mapa).map((d) => ({ ...d, promedio: Math.round(d.total / d.cantidad) }));
 }
 
+export function agregarPorAnio(pedidos) {
+  const mapa = {};
+  pedidos.forEach((p) => {
+    const anio = p.mes.split("-")[0];
+    if (!mapa[anio]) mapa[anio] = { anio, total: 0, cantidad: 0 };
+    mapa[anio].total += p.monto;
+    mapa[anio].cantidad += 1;
+  });
+  return Object.values(mapa).sort((a, b) => a.anio.localeCompare(b.anio));
+}
+
 export function ticketPromedioPorTipo(pedidos) {
   const mapa = {};
   pedidos.forEach((p) => {

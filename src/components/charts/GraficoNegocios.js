@@ -1,27 +1,31 @@
 "use client";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList, Cell } from "recharts";
+import FiltroHeader from "@/components/ui/FiltroHeader";
+import { CHART_COLORS, CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMillionsDecimal } from "@/lib/constants";
 
 export default function GraficoNegocios({ datos, formatCLP }) {
+  const total = datos.reduce((s, x) => s + x.total, 0);
+
   return (
-    <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: 16, padding: "28px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-      <p style={{ fontSize: 11, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 24 }}>Participación por negocio</p>
+    <div className="card">
+      <FiltroHeader titulo="Participación por negocio" />
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={datos} margin={{ top: 24, right: 24, left: 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-          <XAxis dataKey="negocio" tick={{ fill: "#888", fontSize: 12, fontFamily: "inherit" }} />
-          <YAxis tick={{ fill: "#888", fontSize: 11, fontFamily: "inherit" }} tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} />
+          <XAxis dataKey="negocio" tick={AXIS_TICK_X} />
+          <YAxis tick={AXIS_TICK_Y} tickFormatter={formatMillionsDecimal} />
           <Tooltip
-            formatter={(v, n) => [formatCLP(v), "Ventas"]}
-            contentStyle={{ borderRadius: 10, fontSize: 13, border: "1px solid #e8e8e8", fontFamily: "inherit" }}
+            formatter={(v) => [formatCLP(v), "Ventas"]}
+            contentStyle={CHART_TOOLTIP_STYLE}
           />
           <Bar dataKey="total" radius={[6, 6, 0, 0]}>
             {datos.map((_, i) => (
-              <rect key={i} fill={i === 0 ? "#002b54" : "#4a90d9"} />
+              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
             ))}
             <LabelList
               dataKey="total"
               position="top"
-              formatter={(v) => `$${(v/1000000).toFixed(1)}M`}
+              formatter={formatMillionsDecimal}
               style={{ fontSize: 12, fill: "#333", fontFamily: "inherit", fontWeight: 600 }}
             />
           </Bar>
@@ -29,11 +33,10 @@ export default function GraficoNegocios({ datos, formatCLP }) {
       </ResponsiveContainer>
       <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 16 }}>
         {datos.map((d, i) => {
-          const total = datos.reduce((s, x) => s + x.total, 0);
           const pct = ((d.total / total) * 100).toFixed(1);
           return (
             <div key={d.negocio} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: i === 0 ? "#002b54" : "#4a90d9" }} />
+              <div style={{ width: 12, height: 12, borderRadius: 3, background: CHART_COLORS[i % CHART_COLORS.length] }} />
               <span style={{ fontSize: 13, color: "#444", fontWeight: 600 }}>{d.negocio}</span>
               <span style={{ fontSize: 13, color: "#888" }}>{pct}%</span>
             </div>
