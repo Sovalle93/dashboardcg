@@ -1,126 +1,160 @@
-// components/ui/historial/useHistorial.js
+// src/components/ui/historial/useHistorial.js - VERSIÓN SIMPLE Y FUNCIONAL
 "use client";
 import { useState, useEffect, useCallback } from "react";
+
+// Límites para prevenir colapso
+const MAX_REGISTROS = 15;
+const MAX_TAMANO_BYTES = 4.5 * 1024 * 1024; // 4.5MB
 
 export function useHistorial() {
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Cargar historial desde localStorage al iniciar
-  useEffect(() => {
-    const saved = localStorage.getItem("historialSubidas");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setHistorial(parsed);
-      } catch (error) {
-        console.error("Error cargando historial:", error);
-        setHistorial([]);
+  // Verificar tamaño del localStorage
+  const verificarTamano = useCallback(() => {
+    try {
+      let total = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        total += (key?.length || 0) + (value?.length || 0);
       }
+      const porcentaje = (total / MAX_TAMANO_BYTES) * 100;
+      if (porcentaje > 80) {
+        console.warn(`⚠️ Storage al ${porcentaje.toFixed(1)}% de capacidad`);
+      }
+      return { total, porcentaje };
+    } catch (e) {
+      return { total: 0, porcentaje: 0 };
     }
   }, []);
 
-  // Función para generar hash único del archivo (evita duplicados exactos)
-  const generarHash = (pedidos, archivos) => {
-    const primerPedido = pedidos[0];
-    const ultimoPedido = pedidos[pedidos.length - 1];
-    const fechaInicio = primerPedido?.fecha || '';
-    const fechaFin = ultimoPedido?.fecha || '';
+  // Cargar historial desde localStorage
+  const cargarHistorial = useCallback(async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const saved = localStorage.getItem("historialSubidas");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setHistorial(parsed);
+        } else {
+          localStorage.removeItem("historialSubidas");
+          setHistorial([]);
+        }
+      } else {
+        setHistorial([]);
+      }
+    } catch (err) {
+      console.error("Error cargando historial:", err);
+      setError("Error al cargar el historial. Se ha limpiado para corregirlo.");
+      localStorage.removeItem("historialSubidas");
+      setHistorial([]);
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarHistorial();
+  }, [cargarHistorial]);
+
+  // Guardar historial con validaciones
+  const guardarHistorial = useCallback((nuevoHistorial) => {
+    try {
+      const serializado = JSON.stringify(nuevoHistorial);
+      const tamañoBytes = new Blob([serializado]).size;
+      
+      if (tamañoBytes > MAX_TAMANO_BYTES) {
+        throw new Error(`Historial demasiado grande (${(tamañoBytes / 1024 / 1024).toFixed(2)}MB). Elimina registros antiguos.`);
+      }
+      
+      localStorage.setItem("historialSubidas", serializado);
+      verificarTamano();
+      return true;
+    } catch (err) {
+      if (err.name === "QuotaExceededError") {
+        setError("El historial está lleno. Elimina registros antiguos.");
+      } else {
+        setError(err.message);
+      }
+      return false;
+    }
+  }, [verificarTamano]);
+
+  // Agregar nuevo registro (SOLO METADATOS, no datos completos)
+  const agregarRegistro = useCallback((pedidos, archivos) => {
+    if (!pedidos || pedidos.length === 0) {
+      setError("No hay datos para guardar");
+      return null;
+    }
+
     const totalVentas = pedidos.reduce((s, p) => s + (p.monto || 0), 0);
     const totalPedidos = pedidos.length;
     
-    // Hash simple basado en características únicas
-    return `${archivos.join(',')}|${fechaInicio}|${fechaFin}|${totalVentas}|${totalPedidos}`;
-  };
-
-  // Verificar si ya existe un registro similar
-  const existeRegistro = useCallback((nuevosPedidos, archivos) => {
-    const nuevoHash = generarHash(nuevosPedidos, archivos);
-    
-    return historial.some(registro => {
-      const registroHash = generarHash(registro.datos, registro.archivos);
-      return registroHash === nuevoHash;
-    });
-  }, [historial]);
-
-  // Agregar nuevo registro (evitando duplicados)
-  const agregarRegistro = useCallback((pedidos, archivos) => {
-    if (!pedidos || pedidos.length === 0) {
-      console.warn("No hay datos para guardar en historial");
-      return null;
-    }
-    
-    // Verificar si ya existe
-    if (existeRegistro(pedidos, archivos)) {
-      console.log("Registro ya existe en historial, no se duplica");
-      return null;
-    }
+    const fechas = pedidos.map(p => new Date(p.fecha)).filter(d => !isNaN(d));
     
     const nuevoRegistro = {
       id: Date.now(),
       fecha: new Date().toISOString(),
       archivos: Array.isArray(archivos) ? archivos : [archivos],
-      totalVentas: pedidos.reduce((s, p) => s + (p.monto || 0), 0),
-      totalPedidos: pedidos.length,
-      fechaInicio: pedidos.length > 0 
-        ? new Date(Math.min(...pedidos.map(p => new Date(p.fecha)))) 
-        : null,
-      fechaFin: pedidos.length > 0 
-        ? new Date(Math.max(...pedidos.map(p => new Date(p.fecha)))) 
-        : null,
-      datos: pedidos
+      totalVentas,
+      totalPedidos,
+      fechaInicio: fechas.length ? new Date(Math.min(...fechas)).toISOString() : null,
+      fechaFin: fechas.length ? new Date(Math.max(...fechas)).toISOString() : null,
+      // ⚠️ NO guardamos los datos completos de pedidos
     };
     
     setHistorial(prev => {
-      const nuevo = [nuevoRegistro, ...prev];
-      localStorage.setItem("historialSubidas", JSON.stringify(nuevo));
+      // Limitar a MAX_REGISTROS registros
+      const nuevo = [nuevoRegistro, ...prev].slice(0, MAX_REGISTROS);
+      guardarHistorial(nuevo);
       return nuevo;
     });
     
     return nuevoRegistro;
-  }, [existeRegistro]);
+  }, [guardarHistorial]);
 
   // Eliminar registro individual
   const eliminarRegistro = useCallback((id) => {
     setHistorial(prev => {
-      const nuevoHistorial = prev.filter(r => r.id !== id);
-      localStorage.setItem("historialSubidas", JSON.stringify(nuevoHistorial));
-      return nuevoHistorial;
+      const nuevo = prev.filter(r => r.id !== id);
+      guardarHistorial(nuevo);
+      return nuevo;
     });
-  }, []);
+  }, [guardarHistorial]);
 
   // Eliminar todos los registros
   const eliminarTodos = useCallback(() => {
     if (confirm("⚠️ ¿Eliminar TODO el historial?\n\nEsta acción eliminará todos los registros permanentemente.")) {
       setHistorial([]);
       localStorage.removeItem("historialSubidas");
+      setError(null);
     }
-  }, []);
-
-  // Limpiar historial (sin confirmación, para reset)
-  const limpiarHistorial = useCallback(() => {
-    setHistorial([]);
-    localStorage.removeItem("historialSubidas");
   }, []);
 
   // Obtener estadísticas
   const obtenerEstadisticas = useCallback(() => {
+    const tamano = verificarTamano();
     return {
       totalRegistros: historial.length,
       totalPedidos: historial.reduce((acc, h) => acc + h.totalPedidos, 0),
       totalVentas: historial.reduce((acc, h) => acc + h.totalVentas, 0),
-      ultimoRegistro: historial[0] || null
+      ultimoRegistro: historial[0] || null,
+      storageUsage: tamano.porcentaje.toFixed(1)
     };
-  }, [historial]);
+  }, [historial, verificarTamano]);
 
   return {
     historial,
     cargando,
-    setCargando,
+    error,
     agregarRegistro,
     eliminarRegistro,
     eliminarTodos,
-    limpiarHistorial,
-    obtenerEstadisticas
+    obtenerEstadisticas,
+    recargar: cargarHistorial
   };
 }
