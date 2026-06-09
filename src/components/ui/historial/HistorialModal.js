@@ -5,7 +5,7 @@ import { X, TrendingUp, Trash2, History } from "lucide-react";
 import { Portal } from "./usePortal"; 
 import { ExportPanel } from "./ExportPanel";
 import { RegistroList } from "./RegistroList";
-import { EmptyState } from "./EmptyState";
+import EmptyState from "./EmptyState";
 import { ComparacionPanel } from "./ComparacionPanel";
 import { obtenerEstadisticasComparacion } from "./utils";
 

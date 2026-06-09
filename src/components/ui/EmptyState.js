@@ -1,6 +1,6 @@
-// components/ui/EmptyState.jsx
+// components/ui/EmptyState.js
 "use client";
-import { AlertCircle, UploadCloud } from 'lucide-react';
+import { AlertCircle, UploadCloud, Inbox } from "lucide-react";
 
 export default function EmptyState({ 
   title = "No hay datos disponibles", 
@@ -9,7 +9,7 @@ export default function EmptyState({
   actionText = null,
   onAction = null
 }) {
-  const IconComponent = icon === 'upload' ? UploadCloud : AlertCircle;
+  const IconComponent = icon === 'upload' ? UploadCloud : icon === 'inbox' ? Inbox : AlertCircle;
   
   return (
     <div style={{
@@ -21,35 +21,36 @@ export default function EmptyState({
       boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
     }}>
       <div style={{
-        width: 48,
-        height: 48,
-        borderRadius: 12,
+        width: 64,
+        height: 64,
+        borderRadius: 16,
         background: '#f0f0f0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        margin: '0 auto 16px'
+        margin: '0 auto 20px'
       }}>
-        <IconComponent size={24} color="#999" />
+        <IconComponent size={32} color="#999" />
       </div>
-      <h3 style={{ fontSize: 16, fontWeight: 600, color: '#333', marginBottom: 8 }}>
+      <h3 style={{ fontSize: 18, fontWeight: 600, color: '#333', marginBottom: 10 }}>
         {title}
       </h3>
-      <p style={{ fontSize: 13, color: '#888', maxWidth: 320, margin: '0 auto' }}>
+      <p style={{ fontSize: 14, color: '#888', maxWidth: 380, margin: '0 auto', lineHeight: 1.5 }}>
         {description}
       </p>
       {actionText && onAction && (
         <button
           onClick={onAction}
           style={{
-            marginTop: 20,
-            padding: '8px 20px',
+            marginTop: 24,
+            padding: '10px 24px',
             background: '#002b54',
             color: '#fff',
             border: 'none',
             borderRadius: 8,
             cursor: 'pointer',
-            fontSize: 13
+            fontSize: 14,
+            fontWeight: 500
           }}
         >
           {actionText}
