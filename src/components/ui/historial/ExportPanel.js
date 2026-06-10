@@ -1,29 +1,41 @@
 "use client";
-import { Download } from "lucide-react";
-import { exportarAExcel } from "./utils";
+import { useState } from "react";
+import { FileText } from "lucide-react";
+import { exportarAPDF } from "./utils";
 
 export function ExportPanel({ historial, periodoSeleccionado, setPeriodoSeleccionado, comparacionIds }) {
-  const handleExport = () => {
+  const [exportando, setExportando] = useState(false);
+
+  const handleExport = async () => {
     let pedidosExportar = [];
-    
+    let titulo = "";
+
     if (periodoSeleccionado === "todos") {
       pedidosExportar = historial.flatMap(r => r.datos || []);
+      titulo = `Todos los registros (${historial.length} períodos)`;
     } else if (periodoSeleccionado === "comparacion" && comparacionIds.length > 0) {
       pedidosExportar = historial
         .filter(r => comparacionIds.includes(r.id))
         .flatMap(r => r.datos || []);
+      titulo = `Comparación — ${comparacionIds.length} períodos`;
     } else {
       const registro = historial.find(r => r.id === parseInt(periodoSeleccionado));
       pedidosExportar = registro?.datos || [];
+      titulo = registro ? registro.archivos.join(", ") : "Reporte";
     }
-    
-    exportarAExcel(pedidosExportar, `Exportación ${new Date().toLocaleDateString()}`);
+
+    setExportando(true);
+    try {
+      await exportarAPDF(pedidosExportar, titulo);
+    } finally {
+      setExportando(false);
+    }
   };
 
   return (
     <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "16px", marginTop: 8 }}>
       <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 10, opacity: 0.9 }}>
-        📥 Exportar datos a Excel
+        📄 Exportar informe PDF
       </label>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <select
@@ -44,7 +56,7 @@ export function ExportPanel({ historial, periodoSeleccionado, setPeriodoSeleccio
           <option value="todos">📦 Todos los registros ({historial.length} períodos)</option>
           {historial.map(h => (
             <option key={h.id} value={h.id}>
-              📄 {h.archivos.join(", ")} - {new Date(h.fecha).toLocaleDateString()}
+              📄 {h.archivos.join(", ")} — {new Date(h.fecha).toLocaleDateString()}
             </option>
           ))}
           {comparacionIds.length > 0 && (
@@ -53,22 +65,24 @@ export function ExportPanel({ historial, periodoSeleccionado, setPeriodoSeleccio
         </select>
         <button
           onClick={handleExport}
+          disabled={exportando}
           style={{
             padding: "10px 24px",
             fontSize: 13,
             fontWeight: 600,
-            background: "#fff",
-            color: "#002b54",
+            background: exportando ? "#ccc" : "#fff",
+            color: exportando ? "#888" : "#002b54",
             border: "none",
             borderRadius: 10,
-            cursor: "pointer",
+            cursor: exportando ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
-            gap: 8
+            gap: 8,
+            transition: "background 0.2s"
           }}
         >
-          <Download size={16} />
-          Exportar Ahora
+          <FileText size={16} />
+          {exportando ? "Generando…" : "Exportar PDF"}
         </button>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 import FiltroHeader from "@/components/ui/FiltroHeader";
 
-export default function GraficoSucursales({ datos, formatCLP }) {
+export default function GraficoSucursales({ datos, formatCLP, theme }) {
   const total = datos.reduce((s, d) => s + d.total, 0);
 
   return (
@@ -24,7 +24,7 @@ export default function GraficoSucursales({ datos, formatCLP }) {
                   width: `${pct}%`,
                   height: "100%",
                   borderRadius: 99,
-                  background: `hsl(${210 + i * 8}, ${70 - i * 5}%, ${25 + i * 6}%)`,
+                  background: theme ? theme.palette[i % theme.palette.length] : `hsl(${210 + i * 8}, ${70 - i * 5}%, ${25 + i * 6}%)`,
                   transition: "width 0.6s ease"
                 }} />
               </div>

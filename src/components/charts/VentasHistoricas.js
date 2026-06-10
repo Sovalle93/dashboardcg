@@ -6,13 +6,14 @@ import { CHART_COLORS, CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMill
 import MonthToggle, { MESES } from "@/components/ui/MonthToggle";
 import VentasHistoricasTabla from "@/components/charts/VentasHistoricasTabla";
 
-export default function VentasHistoricas({ datos, formatCLP }) {
+export default function VentasHistoricas({ datos, formatCLP, theme }) {
   const { anios, data } = datos;
   const [selectedMonths, setSelectedMonths] = useState([...MESES]);
 
   if (!anios || anios.length === 0) return null;
 
   const filteredData = (data || []).filter((row) => selectedMonths.includes(row.mes));
+  const colors = theme?.palette ?? CHART_COLORS;
 
   return (
     <div className="card" style={{ gridColumn: "1 / -1" }}>
@@ -30,7 +31,7 @@ export default function VentasHistoricas({ datos, formatCLP }) {
               key={a}
               type="monotone"
               dataKey={a}
-              stroke={CHART_COLORS[i % CHART_COLORS.length]}
+              stroke={colors[i % colors.length]}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 5 }}

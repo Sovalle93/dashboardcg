@@ -1,7 +1,7 @@
 "use client";
 import FiltroHeader from "@/components/ui/FiltroHeader";
 
-export default function CrecimientoVsAnterior({ datos: { datos, anioActual, anioAnterior }, formatCLP }) {
+export default function CrecimientoVsAnterior({ datos: { datos, anioActual, anioAnterior }, formatCLP, theme }) {
   if (!anioAnterior) {
     return (
       <div className="card">
@@ -27,7 +27,7 @@ export default function CrecimientoVsAnterior({ datos: { datos, anioActual, anio
                   width: `${Math.min(Math.abs(d.pct ?? 0), 100)}%`,
                   height: "100%",
                   borderRadius: 99,
-                  background: positivo ? "#002b54" : "#e53e3e",
+                  background: positivo ? (theme?.accent ?? '#002b54') : '#e53e3e',
                   transition: "width 0.6s ease"
                 }} />
               </div>

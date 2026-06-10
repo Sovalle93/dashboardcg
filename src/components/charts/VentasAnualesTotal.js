@@ -3,10 +3,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import FiltroHeader from "@/components/ui/FiltroHeader";
 import { CHART_COLORS, CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMillions } from "@/lib/constants";
 
-export default function VentasAnualesTotal({ datos, formatCLP }) {
+export default function VentasAnualesTotal({ datos, formatCLP, theme }) {
   if (!datos || datos.length === 0) return null;
 
   const total = datos.reduce((s, d) => s + d.total, 0);
+  const colors = theme?.palette ?? CHART_COLORS;
 
   return (
     <div className="card" style={{ gridColumn: "1 / -1" }}>
@@ -25,7 +26,7 @@ export default function VentasAnualesTotal({ datos, formatCLP }) {
           />
           <Bar dataKey="total" radius={[6, 6, 0, 0]} name="Ventas">
             {datos.map((_, i) => (
-              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              <Cell key={i} fill={colors[i % colors.length]} />
             ))}
             <LabelList
               dataKey="total"
@@ -40,7 +41,7 @@ export default function VentasAnualesTotal({ datos, formatCLP }) {
         {datos.map((d, i) => (
           <div key={d.anio}>
             <p style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.06em" }}>{d.anio}</p>
-            <p style={{ fontSize: 15, fontWeight: 700, color: CHART_COLORS[i % CHART_COLORS.length], marginTop: 4 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#111", marginTop: 4 }}>
               {formatCLP(d.total)}
             </p>
             <p style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>{d.cantidad.toLocaleString()} pedidos</p>

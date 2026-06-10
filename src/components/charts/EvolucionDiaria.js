@@ -3,11 +3,12 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import FiltroHeader from "@/components/ui/FiltroHeader";
 import { CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMillionsDecimal } from "@/lib/constants";
 
-export default function EvolucionDiaria({ datos, formatCLP }) {
+export default function EvolucionDiaria({ datos, formatCLP, theme }) {
   const diasUnicos = datos.length;
   // Spread to avoid mutating the prop before sorting
   const mejorDia = [...datos].sort((a, b) => b.total - a.total)[0];
   const totalAcum = datos.reduce((s, d) => s + d.total, 0);
+  const accent = theme?.accent ?? '#002b54';
 
   return (
     <div className="card" style={{ gridColumn: "1 / -1" }}>
@@ -19,8 +20,8 @@ export default function EvolucionDiaria({ datos, formatCLP }) {
         <AreaChart data={datos} margin={{ top: 10, right: 24, left: 8, bottom: 0 }}>
           <defs>
             <linearGradient id="gradDia" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#002b54" stopOpacity={0.12} />
-              <stop offset="95%" stopColor="#002b54" stopOpacity={0} />
+              <stop offset="5%" stopColor={accent} stopOpacity={0.12} />
+              <stop offset="95%" stopColor={accent} stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -33,10 +34,10 @@ export default function EvolucionDiaria({ datos, formatCLP }) {
           <Area
             type="monotone"
             dataKey="total"
-            stroke="#002b54"
+            stroke={accent}
             strokeWidth={2.5}
             fill="url(#gradDia)"
-            dot={{ fill: "#002b54", r: 4 }}
+            dot={{ fill: accent, r: 4 }}
             activeDot={{ r: 6 }}
             name="Ventas"
           />

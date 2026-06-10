@@ -3,7 +3,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import FiltroHeader from "@/components/ui/FiltroHeader";
 import { CHART_COLORS, CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatThousands } from "@/lib/constants";
 
-export default function TicketPromedio({ datosNegocio, datosTipo, formatCLP }) {
+export default function TicketPromedio({ datosNegocio, datosTipo, formatCLP, theme }) {
+  const colors = theme?.palette ?? CHART_COLORS;
   return (
     <>
       <div className="card">
@@ -17,7 +18,7 @@ export default function TicketPromedio({ datosNegocio, datosTipo, formatCLP }) {
               formatter={(v) => [formatCLP(v), "Ticket promedio"]}
               contentStyle={CHART_TOOLTIP_STYLE}
             />
-            <Bar dataKey="promedio" radius={[6, 6, 0, 0]} fill="#002b54" name="Ticket promedio">
+            <Bar dataKey="promedio" radius={[6, 6, 0, 0]} fill={theme?.accent ?? '#002b54'} name="Ticket promedio">
               <LabelList
                 dataKey="promedio"
                 position="top"
@@ -40,7 +41,7 @@ export default function TicketPromedio({ datosNegocio, datosTipo, formatCLP }) {
                     width: 10,
                     height: 10,
                     borderRadius: 2,
-                    background: CHART_COLORS[i % CHART_COLORS.length],
+                    background: colors[i % colors.length],
                     flexShrink: 0
                   }} />
                   <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{d.tipo}</span>
@@ -55,7 +56,7 @@ export default function TicketPromedio({ datosNegocio, datosTipo, formatCLP }) {
                   width: `${Math.min((d.promedio / datosTipo[0].promedio) * 100, 100)}%`,
                   height: "100%",
                   borderRadius: 99,
-                  background: CHART_COLORS[i % CHART_COLORS.length]
+                  background: colors[i % colors.length]
                 }} />
               </div>
             </div>

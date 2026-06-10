@@ -3,7 +3,7 @@ import FiltroHeader from "@/components/ui/FiltroHeader";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-export default function RankingLocales({ datos, formatCLP }) {
+export default function RankingLocales({ datos, formatCLP, theme }) {
   const total = datos.reduce((s, d) => s + d.total, 0);
 
   return (
@@ -36,7 +36,7 @@ export default function RankingLocales({ datos, formatCLP }) {
                   width: `${pct}%`,
                   height: "100%",
                   borderRadius: 99,
-                  background: i < 3 ? "#002b54" : "#4a90d9",
+                  background: i < 3 ? (theme?.accent ?? '#002b54') : '#4a90d9',
                   transition: "width 0.6s ease"
                 }} />
               </div>

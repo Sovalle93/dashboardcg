@@ -9,7 +9,10 @@ const GRANULARIDAD_OPTIONS = [
   { value: 'anual', label: '📊 Anual', icon: '📊' }
 ];
 
-export const FilterGranularidad = memo(({ value, onChange }) => {
+export const FilterGranularidad = memo(({ value, onChange, theme }) => {
+  const activeBg = theme?.accent ?? '#002b54';
+  const activeText = theme?.textOnAccent ?? '#fff';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 130 }}>
       <label style={{ fontSize: 11, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -25,9 +28,9 @@ export const FilterGranularidad = memo(({ value, onChange }) => {
               flex: 1,
               padding: '8px 8px',
               fontSize: 12,
-              background: value === opt.value ? '#002b54' : '#fff',
-              color: value === opt.value ? '#fff' : '#666',
-              border: `1px solid ${value === opt.value ? '#002b54' : '#e0e0e0'}`,
+              background: value === opt.value ? activeBg : '#fff',
+              color: value === opt.value ? activeText : '#666',
+              border: `1px solid ${value === opt.value ? activeBg : '#e0e0e0'}`,
               borderRadius: 6,
               cursor: 'pointer',
               transition: 'all 0.2s',

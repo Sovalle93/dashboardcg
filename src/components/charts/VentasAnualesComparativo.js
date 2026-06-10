@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 import FiltroHeader from "@/components/ui/FiltroHeader";
 import { CHART_TOOLTIP_STYLE, AXIS_TICK_X, AXIS_TICK_Y, formatMillions } from "@/lib/constants";
 
-export default function VentasAnualesComparativo({ datos, formatCLP }) {
+export default function VentasAnualesComparativo({ datos, formatCLP, theme }) {
   const { anios, data } = datos;
 
   if (!anios || anios.length < 2) {
@@ -31,7 +31,7 @@ export default function VentasAnualesComparativo({ datos, formatCLP }) {
           <Tooltip formatter={(v) => formatCLP(v)} contentStyle={CHART_TOOLTIP_STYLE} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12, fontFamily: "inherit" }} />
           <Bar dataKey={anterior} fill="#b0d9f7" radius={[4, 4, 0, 0]} />
-          <Bar dataKey={actual} fill="#002b54" radius={[4, 4, 0, 0]} />
+          <Bar dataKey={actual} fill={theme?.accent ?? '#002b54'} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

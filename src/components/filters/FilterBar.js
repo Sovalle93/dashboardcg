@@ -8,13 +8,14 @@ import { FilterGranularidad } from './FilterGranularidad';
 import { useFilterContext } from '@/components/context/filterContext';
 
 export const FilterBar = memo(() => {
-  const { 
-    filters, 
-    updateFilter, 
-    resetFilters, 
-    availableFilters, 
+  const {
+    filters,
+    updateFilter,
+    resetFilters,
+    availableFilters,
     hasData,
-    stats 
+    stats,
+    theme
   } = useFilterContext();
   
   if (!availableFilters.negocios?.length && !availableFilters.sucursales?.length) {
@@ -108,7 +109,15 @@ export const FilterBar = memo(() => {
           onChange={(val) => updateFilter('sucursal', val)}
           icon="📍"
         />
-        
+
+        <FilterSelect
+          label="Tipo"
+          value={filters.tipo}
+          options={availableFilters.tipos || ['todos']}
+          onChange={(val) => updateFilter('tipo', val)}
+          icon="🎯"
+        />
+
         <FilterDatePicker
           label="Desde"
           value={filters.fechaInicio}
@@ -128,6 +137,7 @@ export const FilterBar = memo(() => {
         <FilterGranularidad
           value={filters.granularidad}
           onChange={(val) => updateFilter('granularidad', val)}
+          theme={theme}
         />
       </div>
       

@@ -166,6 +166,16 @@ export function agregarPorAnio(pedidos) {
   return Object.values(mapa).sort((a, b) => a.anio.localeCompare(b.anio));
 }
 
+export function agregarPorTipo(pedidos) {
+  const mapa = {};
+  pedidos.forEach((p) => {
+    if (!mapa[p.tipo]) mapa[p.tipo] = { tipo: p.tipo, cantidad: 0, total: 0 };
+    mapa[p.tipo].cantidad += 1;
+    mapa[p.tipo].total += p.monto;
+  });
+  return Object.values(mapa).sort((a, b) => b.cantidad - a.cantidad);
+}
+
 export function ticketPromedioPorTipo(pedidos) {
   const mapa = {};
   pedidos.forEach((p) => {
@@ -174,4 +184,16 @@ export function ticketPromedioPorTipo(pedidos) {
     mapa[p.tipo].cantidad += 1;
   });
   return Object.values(mapa).map((d) => ({ ...d, promedio: Math.round(d.total / d.cantidad) })).sort((a, b) => b.promedio - a.promedio);
+}
+
+export function agregarPorMesYNegocio(pedidos) {
+  const negocios = [...new Set(pedidos.map(p => p.negocio).filter(Boolean))].sort();
+  const mapa = {};
+  pedidos.forEach(p => {
+    if (!mapa[p.mes]) mapa[p.mes] = { mes: p.mes, total: 0 };
+    mapa[p.mes].total += p.monto;
+    if (p.negocio) mapa[p.mes][p.negocio] = (mapa[p.mes][p.negocio] ?? 0) + p.monto;
+  });
+  const data = Object.values(mapa).sort((a, b) => a.mes.localeCompare(b.mes));
+  return { negocios, data };
 }

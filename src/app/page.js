@@ -9,6 +9,8 @@ import {
   agregarPorMesYAnio,
   agregarPorDia,
   agregarPorAnio,
+  agregarPorTipo,
+  agregarPorMesYNegocio,
   crecimientoVsAnioAnterior,
   ticketPromedioPorNegocio,
   ticketPromedioPorTipo,
@@ -30,11 +32,14 @@ import TicketPromedio from "@/components/charts/TicketPromedio";
 import GraficoNegocios from "@/components/charts/GraficoNegocios";
 import RankingLocales from "@/components/charts/RankingLocales";
 import GraficoSucursales from "@/components/charts/GraficoSucursales";
+import GraficoCantidadTipo from "@/components/charts/GraficoCantidadTipo";
+import VentasNegocioLineas from "@/components/charts/VentasNegocioLineas";
+import GraficoFormaPago from "@/components/charts/GraficoFormaPago";
 import Tabs from "@/components/ui/Tabs";
 import { HistorialButton, HistorialModal, useHistorial } from "@/components/ui/historial";
 import EmptyState from "@/components/ui/EmptyState";
 
-function Seccion({ titulo }) {
+function Seccion({ titulo, theme }) {
   return (
     <div style={{ marginTop: 16, marginBottom: 8 }}>
       <p style={{
@@ -43,7 +48,7 @@ function Seccion({ titulo }) {
         color: "#002b54",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
-        borderLeft: "3px solid #002b54",
+        borderLeft: `3px solid ${theme?.accent ?? '#002b54'}`,
         paddingLeft: 12
       }}>{titulo}</p>
     </div>
@@ -51,15 +56,15 @@ function Seccion({ titulo }) {
 }
 
 // Switches the primary time-series chart based on the granularidad filter.
-function TiempoChart({ granularidad, datosCalculados }) {
+function TiempoChart({ granularidad, datosCalculados, theme }) {
   if (granularidad === "diario") {
-    return <EvolucionDiaria datos={datosCalculados.datosDiarios} formatCLP={formatCLP} />;
+    return <EvolucionDiaria datos={datosCalculados.datosDiarios} formatCLP={formatCLP} theme={theme} />;
   }
   if (granularidad === "anual") {
-    return <VentasAnualesTotal datos={datosCalculados.datosAnuales} formatCLP={formatCLP} />;
+    return <VentasAnualesTotal datos={datosCalculados.datosAnuales} formatCLP={formatCLP} theme={theme} />;
   }
   // default: mensual
-  return <VentasHistoricas datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} />;
+  return <VentasHistoricas datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} theme={theme} />;
 }
 
 function DashboardContent({
@@ -75,7 +80,7 @@ function DashboardContent({
 }) {
   // All chart data comes from filteredData so every filter (negocio, sucursal,
   // fecha, granularidad) is reflected immediately in the charts.
-  const { filteredData, filters } = useFilterContext();
+  const { filteredData, filters, theme } = useFilterContext();
   const [tabActivo, setTabActivo] = useState("general");
   const [modalHistorialAbierto, setModalHistorialAbierto] = useState(false);
 
@@ -90,6 +95,8 @@ function DashboardContent({
     datosCrecimiento: crecimientoVsAnioAnterior(filteredData),
     datosTicketNegocio: ticketPromedioPorNegocio(filteredData),
     datosTicketTipo: ticketPromedioPorTipo(filteredData),
+    datosTipo: agregarPorTipo(filteredData),
+    datosNegocioLineas: agregarPorMesYNegocio(filteredData),
     totalVentas: filteredData.reduce((s, p) => s + p.monto, 0),
   }), [filteredData]);
 
@@ -98,12 +105,13 @@ function DashboardContent({
       case "general":
         return (
           <>
-            <Seccion titulo="Ventas históricas" />
+            <Seccion titulo="Ventas históricas" theme={theme} />
             <div className="grid-2">
-              <TiempoChart granularidad={filters.granularidad} datosCalculados={datosCalculados} />
-              <RankingLocales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} />
+              <VentasNegocioLineas datos={datosCalculados.datosNegocioLineas} formatCLP={formatCLP} />
+              <TiempoChart granularidad={filters.granularidad} datosCalculados={datosCalculados} theme={theme} />
+              <RankingLocales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} theme={theme} />
             </div>
-            <Seccion titulo="Análisis IA" />
+            <Seccion titulo="Análisis IA" theme={theme} />
             <InsightIA
               totalVentas={datosCalculados.totalVentas}
               totalPedidos={filteredData.length}
@@ -116,26 +124,28 @@ function DashboardContent({
       case "ventas":
         return (
           <div className="grid-2">
-            <TiempoChart granularidad={filters.granularidad} datosCalculados={datosCalculados} />
-            <VentasAnualesComparativo datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} />
-            <GraficoNegocios datos={datosCalculados.datosNegocio} formatCLP={formatCLP} />
+            <VentasNegocioLineas datos={datosCalculados.datosNegocioLineas} formatCLP={formatCLP} />
+            <TiempoChart granularidad={filters.granularidad} datosCalculados={datosCalculados} theme={theme} />
+            <VentasAnualesComparativo datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} theme={theme} />
+            <GraficoNegocios datos={datosCalculados.datosNegocio} formatCLP={formatCLP} theme={theme} />
+            <GraficoFormaPago datos={datosCalculados.datosFormaPago} formatCLP={formatCLP} theme={theme} />
           </div>
         );
 
       case "sucursales":
         return (
           <div className="grid-2">
-            <GraficoSucursales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} />
-            <RankingLocales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} />
-            <CrecimientoVsAnterior datos={datosCalculados.datosCrecimiento} formatCLP={formatCLP} />
+            <GraficoSucursales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} theme={theme} />
+            <RankingLocales datos={datosCalculados.datosSucursal} formatCLP={formatCLP} theme={theme} />
+            <CrecimientoVsAnterior datos={datosCalculados.datosCrecimiento} formatCLP={formatCLP} theme={theme} />
           </div>
         );
 
       case "crecimiento":
         return (
           <div className="grid-2">
-            <CrecimientoVsAnterior datos={datosCalculados.datosCrecimiento} formatCLP={formatCLP} />
-            <VentasAnualesComparativo datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} />
+            <CrecimientoVsAnterior datos={datosCalculados.datosCrecimiento} formatCLP={formatCLP} theme={theme} />
+            <VentasAnualesComparativo datos={datosCalculados.datosHistoricos} formatCLP={formatCLP} theme={theme} />
           </div>
         );
 
@@ -146,7 +156,9 @@ function DashboardContent({
               datosNegocio={datosCalculados.datosTicketNegocio}
               datosTipo={datosCalculados.datosTicketTipo}
               formatCLP={formatCLP}
+              theme={theme}
             />
+            <GraficoCantidadTipo datos={datosCalculados.datosTipo} formatCLP={formatCLP} theme={theme} />
           </div>
         );
 

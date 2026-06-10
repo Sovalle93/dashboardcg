@@ -9,6 +9,11 @@ export const filterDataBySucursal = (data, sucursal) => {
   return data.filter(item => item.sucursal === sucursal);
 };
 
+export const filterDataByTipo = (data, tipo) => {
+  if (!tipo || tipo === 'todos') return data;
+  return data.filter(item => item.tipo === tipo);
+};
+
 export const filterDataByDateRange = (data, startDate, endDate) => {
   if (!startDate && !endDate) return data;
   
@@ -28,6 +33,7 @@ export const applyAllFilters = (data, filters) => {
   
   filtered = filterDataByNegocio(filtered, filters.negocio);
   filtered = filterDataBySucursal(filtered, filters.sucursal);
+  filtered = filterDataByTipo(filtered, filters.tipo);
   filtered = filterDataByDateRange(filtered, filters.fechaInicio, filters.fechaFin);
   
   return {
@@ -47,6 +53,7 @@ export const getAvailableFilters = (data) => {
   return {
     negocios: ['todos', ...new Set(data.map(item => item.negocio).filter(Boolean))],
     sucursales: ['todos', ...new Set(data.map(item => item.sucursal).filter(Boolean))],
+    tipos: ['todos', ...new Set(data.map(item => item.tipo).filter(Boolean))],
     dateRange: {
       min: data.length ? new Date(Math.min(...data.map(d => new Date(d.fecha)))) : null,
       max: data.length ? new Date(Math.max(...data.map(d => new Date(d.fecha)))) : null
