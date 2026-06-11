@@ -63,27 +63,6 @@ export function ExportPanel({ historial, periodoSeleccionado, setPeriodoSeleccio
             <option value="comparacion">📊 Comparación ({comparacionIds.length} períodos)</option>
           )}
         </select>
-        <button
-          onClick={handleExport}
-          disabled={exportando}
-          style={{
-            padding: "10px 24px",
-            fontSize: 13,
-            fontWeight: 600,
-            background: exportando ? "#ccc" : "#fff",
-            color: exportando ? "#888" : "#002b54",
-            border: "none",
-            borderRadius: 10,
-            cursor: exportando ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            transition: "background 0.2s"
-          }}
-        >
-          <FileText size={16} />
-          {exportando ? "Generando…" : "Exportar PDF"}
-        </button>
       </div>
     </div>
   );

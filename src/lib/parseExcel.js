@@ -190,9 +190,15 @@ export function agregarPorMesYNegocio(pedidos) {
   const negocios = [...new Set(pedidos.map(p => p.negocio).filter(Boolean))].sort();
   const mapa = {};
   pedidos.forEach(p => {
-    if (!mapa[p.mes]) mapa[p.mes] = { mes: p.mes, total: 0 };
+    if (!mapa[p.mes]) {
+      // Negocio keys are inserted before 'total' so Recharts tooltip order matches declaration order.
+      const entry = { mes: p.mes };
+      negocios.forEach(n => { entry[n] = 0; });
+      entry.total = 0;
+      mapa[p.mes] = entry;
+    }
     mapa[p.mes].total += p.monto;
-    if (p.negocio) mapa[p.mes][p.negocio] = (mapa[p.mes][p.negocio] ?? 0) + p.monto;
+    if (p.negocio) mapa[p.mes][p.negocio] += p.monto;
   });
   const data = Object.values(mapa).sort((a, b) => a.mes.localeCompare(b.mes));
   return { negocios, data };

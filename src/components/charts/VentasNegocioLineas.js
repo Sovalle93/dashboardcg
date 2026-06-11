@@ -32,9 +32,27 @@ export default function VentasNegocioLineas({ datos, formatCLP }) {
           <XAxis dataKey="mes" tick={AXIS_TICK_X} tickFormatter={formatMesLabel} />
           <YAxis tick={AXIS_TICK_Y} tickFormatter={formatMillions} />
           <Tooltip
-            labelFormatter={formatMesLabel}
-            formatter={(v, name) => [formatCLP(v), name]}
-            contentStyle={CHART_TOOLTIP_STYLE}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null;
+              const byKey = {};
+              payload.forEach(p => { byKey[p.dataKey] = p; });
+              return (
+                <div style={{ ...CHART_TOOLTIP_STYLE, background: '#fff', padding: '10px 14px' }}>
+                  <p style={{ fontWeight: 700, marginBottom: 6, fontSize: 13, color: '#111' }}>
+                    {formatMesLabel(label)}
+                  </p>
+                  {[...negocios, 'total'].map(key => {
+                    const item = byKey[key];
+                    if (!item) return null;
+                    return (
+                      <p key={key} style={{ color: item.stroke, fontSize: 12, margin: '2px 0' }}>
+                        {item.name ?? key} : {formatCLP(item.value)}
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            }}
           />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 16, fontFamily: "inherit" }} />
           {negocios.map(negocio => (

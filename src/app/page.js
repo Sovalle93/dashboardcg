@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   parseExcelFile,
   agregarPorMes,
@@ -16,7 +16,8 @@ import {
   ticketPromedioPorTipo,
   formatCLP
 } from "@/lib/parseExcel";
-import { Upload, RotateCcw } from "lucide-react";
+import { Upload, RotateCcw, FileDown } from "lucide-react";
+import { exportarDashboardPDF } from "@/lib/exportPDF";
 import { FilterProvider, useFilterContext } from "@/components/context/filterContext";
 import { FilterBar } from "@/components/filters/FilterBar";
 import { GlobalResumenCards } from "@/components/layout/GlobalResumenCards";
@@ -83,6 +84,18 @@ function DashboardContent({
   const { filteredData, filters, theme } = useFilterContext();
   const [tabActivo, setTabActivo] = useState("general");
   const [modalHistorialAbierto, setModalHistorialAbierto] = useState(false);
+  const [exportandoPDF, setExportandoPDF] = useState(false);
+  const capturaRef = useRef(null);
+
+  const handleExportPDF = async () => {
+    if (!capturaRef.current) return;
+    setExportandoPDF(true);
+    try {
+      await exportarDashboardPDF(capturaRef.current, archivos.join(' · '));
+    } finally {
+      setExportandoPDF(false);
+    }
+  };
 
   const datosCalculados = useMemo(() => ({
     datosMes: agregarPorMes(filteredData),
@@ -201,6 +214,27 @@ function DashboardContent({
           </label>
 
           <button
+            onClick={handleExportPDF}
+            disabled={exportandoPDF}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 20px",
+              fontSize: 13,
+              background: exportandoPDF ? "#e8f0f8" : "#002b54",
+              color: exportandoPDF ? "#999" : "#fff",
+              border: "none",
+              borderRadius: 10,
+              cursor: exportandoPDF ? "not-allowed" : "pointer",
+              transition: "all 0.2s"
+            }}
+          >
+            <FileDown size={14} />
+            {exportandoPDF ? "Generando…" : "Descargar PDF"}
+          </button>
+
+          <button
             onClick={onResetTool}
             style={{
               display: "flex",
@@ -244,12 +278,13 @@ function DashboardContent({
         </div>
       </div>
 
-      <FilterBar />
-      <GlobalResumenCards />
-      <Tabs activo={tabActivo} onChange={setTabActivo} />
-
-      <div style={{ marginTop: 32 }}>
-        {renderContenido()}
+      <div ref={capturaRef}>
+        <FilterBar />
+        <GlobalResumenCards />
+        <Tabs activo={tabActivo} onChange={setTabActivo} />
+        <div style={{ marginTop: 32 }}>
+          {renderContenido()}
+        </div>
       </div>
 
       <p style={{
